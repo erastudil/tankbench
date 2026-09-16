@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+.work/
+*.egg-info/
+.pytest_cache/
+harbor.db

@@ -1,0 +1,29 @@
+{
+  "disclaimer": "synthetic fixture people. not persons. .test TLD. 555 exchange. 000-12-xxxx.",
+  "people": [
+    {
+      "name": "Bob Average",
+      "ssn": "000-12-0001",
+      "phone": "555-0101",
+      "email": "bob.average@example.test",
+      "address": "1 Sample Street, Fictional Township, ZZ 00000",
+      "dob": "1960-01-01"
+    },
+    {
+      "name": "Jane Normal",
+      "ssn": "000-12-0002",
+      "phone": "555-0102",
+      "email": "jane.normal@example.test",
+      "address": "2 Specimen Avenue, Example City, ZZ 00000",
+      "dob": "1970-02-02"
+    },
+    {
+      "name": "Sally Representative Sample",
+      "ssn": "000-12-0003",
+      "phone": "555-0103",
+      "email": "sally.rs@example.test",
+      "address": "3 Placeholder Road, Demo Village, ZZ 00000",
+      "dob": "1980-03-03"
+    }
+  ]
+}
