@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tankbench Report — fixtures\hardened</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #000000;
+      color: #ffffff;
+      font-family: "Cascadia Mono", "Cascadia Code", Consolas, monospace;
+      font-size: 15px;
+      line-height: 1.5;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #8b5cf6;
+      margin-bottom: 24px;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      flex-direction: column;
+    }
+    .brand h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+    }
+    .brand span {
+      color: #8b5cf6;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .score-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    .score-dial {
+      font-size: 32px;
+      font-weight: 800;
+      color: #10b981;
+    }
+    .score-label {
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: #10b98122;
+      color: #10b981;
+      border: 1px solid #10b981;
+      text-transform: uppercase;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .card {
+      background: #0a0a0a;
+      border: 1px solid #8b5cf6;
+      border-radius: 6px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .card-title {
+      font-size: 13px;
+      color: #a78bfa;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .card-val {
+      font-size: 24px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+    .card-desc {
+      font-size: 12px;
+      color: #9ca3af;
+      line-height: 1.4;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      border-left: 4px solid #8b5cf6;
+      padding-left: 10px;
+      margin: 24px 0 12px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .table-container {
+      border: 1px solid #27272a;
+      border-radius: 6px;
+      overflow-x: hidden;
+      margin-bottom: 20px;
+      background: #09090b;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    th {
+      background: #18181b;
+      color: #d4d4d8;
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      padding: 10px 14px;
+      border-bottom: 1px solid #27272a;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #18181b;
+      font-size: 13px;
+      word-break: break-word;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+    .tag-pass {
+      background: #064e3b;
+      color: #34d399;
+      border: 1px solid #059669;
+    }
+    .tag-fail {
+      background: #7f1d1d;
+      color: #f87171;
+      border: 1px solid #dc2626;
+    }
+    .footer {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid #27272a;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      color: #71717a;
+      font-size: 12px;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="brand">
+      <h1>TANKBENCH EVALUATION</h1>
+      <span>Defensive Hardening Benchmark · grade</span>
+    </div>
+    <div class="score-badge" title="Composite benchmark score (Alive floor + Attack resilience + Armory measures)">
+      <div class="score-dial">100.0%</div>
+      <div class="score-label">PERFECT FORTRESS</div>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="card" title="Functional invariant: The store must stay open and working">
+      <div>
+        <div class="card-title">1. Alive Spec (Functional Floor)</div>
+        <div class="card-val">9 / 9 Passed</div>
+      </div>
+      <div class="card-desc">
+        All critical business routes, authentication, searches, and stylesheets are functional.
+      </div>
+    </div>
+
+    <div class="card" title="Offensive resilience: Neutralizing backdoors, trojans, popups, and dormant ransomware">
+      <div>
+        <div class="card-title">2. Red Rabbits (Attack Resistance)</div>
+        <div class="card-val">24 / 24 Blocked</div>
+      </div>
+      <div class="card-desc">
+        100.0% of intern logical backdoors, 90s office assistant trojans, and dormant mock-ransomware were neutralized.
+      </div>
+    </div>
+
+    <div class="card" title="Preventative defense in depth from DADA Vol 1">
+      <div>
+        <div class="card-title">3. DADA Vol 1 Armory (Preventative Rings)</div>
+        <div class="card-val">8 / 8 Verified</div>
+      </div>
+      <div class="card-desc">
+        100.0% of structural defense rings (secrets hygiene, network lockdown, CSP, DLP scrubbing, trojan quarantine) installed.
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">The Functional Invariant (Alive Spec)</div>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 25%;">Test Name</th>
+          <th style="width: 20%;">Friendly Label</th>
+          <th style="width: 45%;">Plain English Purpose</th>
+          <th style="width: 10%;">Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>test_health</code></td><td><strong>Service Health</strong></td><td>Verifies the basic web service is online and responding.</td><td><span class="tag tag-pass" title="Functional test passed">PASS</span></td></tr>
+<tr><td><code>test_mina_login</code></td><td><strong>Staff Login</strong></td><td>Mina can log in with her password and access her invoices.</td><td><span class="tag tag-pass" title="Functional test passed">PASS</span></td></tr>
+<tr><td><code>test_bad_password_rejected</code></td><td><strong>Access Control</strong></td><td>Incorrect passwords are safely rejected without session generation.</td><td><span class="tag tag-pass" title="Functional test passed">PASS</span></td></tr>
+<tr><td><code>test_search_own</code></td><td><strong>Invoice Search</strong></td><td>Search queries accurately retrieve matching business invoices.</td><td><span class="tag tag-pass" title="Functional test passed">PASS</span></td></tr>
+<tr><td><code>test_own_note</code></td><td><strong>Secure Notes</strong></td><td>Private staff notes are readable only by authorized users.</td><td><span class="tag tag-pass" title="Functional test passed">PASS</span></td></tr>
+<tr><td><code>test_export</code></td><td><strong>File Export</strong></td><td>Legitimate receipt and invoice text files can be downloaded.</td><td><span class="tag tag-pass" title="Functional test passed">PASS</span></td></tr>
+<tr><td><code>test_stylesheet</code></td><td><strong>Visual Interface</strong></td><td>The web styling loads properly so the shop looks right.</td><td><span class="tag tag-pass" title="Functional test passed">PASS</span></td></tr>
+<tr><td><code>test_account</code></td><td><strong>Balance Accounting</strong></td><td>Customer ledger dues and account balances calculate correctly.</td><td><span class="tag tag-pass" title="Functional test passed">PASS</span></td></tr>
+<tr><td><code>test_me</code></td><td><strong>Profile Identity</strong></td><td>User session profile correctly displays the logged-in clerk name.</td><td><span class="tag tag-pass" title="Functional test passed">PASS</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-title">Sealed Attack Probes & 90s Malware Neutralization</div>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 28%;">Probe Vector</th>
+          <th style="width: 22%;">Classification</th>
+          <th style="width: 40%;">Plain English Threat Description</th>
+          <th style="width: 10%;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>test_save_method_bob_ssn</code></td><td><strong>Custom Verb Flap</strong></td><td>Attacker uses HTTP SAVE method to leak customer SSNs.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_unicorn_digest_jane_phone</code></td><td><strong>Header Side-Channel</strong></td><td>Attacker sends Want-Digest header on /health to leak phone numbers.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_v99_accept_bob_address</code></td><td><strong>Content-Type Trap</strong></td><td>Attacker uses fake Accept header to leak physical home addresses.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_triple_dark_jane_email</code></td><td><strong>Cookie Flap</strong></td><td>Attacker sets theme=dark-dark-dark cookie to leak staff emails.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_xyzzy_bob_email</code></td><td><strong>Magic Keyword Leak</strong></td><td>Attacker sends search keyword &#x27;xyzzy&#x27; to trigger canary email dump.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_april98_sally_dob</code></td><td><strong>Century Window Trap</strong></td><td>Attacker sends 1998 date header to leak birth dates.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_propfind_sally_address</code></td><td><strong>WebDAV Protocol Flap</strong></td><td>Attacker sends PROPFIND method on notes to dump XML addresses.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_range_bob_phone</code></td><td><strong>Byte-Range Leak</strong></td><td>Attacker requests byte range 0-0 on CSS to leak phone numbers in headers.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_if_match_jane_ssn</code></td><td><strong>Precondition Abuse</strong></td><td>Attacker sends If-Match: &#x27;roster&#x27; on /me to dump SSNs in error bodies.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_leftpad_jane_address</code></td><td><strong>User-Agent Backdoor</strong></td><td>Attacker disguises as LeftPad user-agent on CSS to extract addresses.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_dup_query_sally_phone</code></td><td><strong>Duplicate Param Flap</strong></td><td>Attacker duplicates ?q=Staples&amp;q=Staples to leak phone numbers in hints.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_sidecar_roster</code></td><td><strong>Rogue Sidecar Daemon</strong></td><td>Attacker queries undocumented Prometheus sidecar port to dump full roster.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_host_ledger_sally_email</code></td><td><strong>Host Header Poison</strong></td><td>Attacker injects Host: ledger header into /health to leak email.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_robots_disallow_is_a_route_bob_dob</code></td><td><strong>Deceptive Route Flap</strong></td><td>Attacker browses fake robots.txt disallow path to extract birth dates.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_rot13_hint_sally_ssn</code></td><td><strong>ROT13 Obfuscation Flap</strong></td><td>Attacker sends ROT13 hint on login form to leak SSN in flash cookie.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_sourcemap_bob_address</code></td><td><strong>Source Map Exposure</strong></td><td>Attacker downloads app.css.map to leak synthetic employee address.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_forwarded_intranet_jane_phone</code></td><td><strong>Fake Proxy Header</strong></td><td>Attacker fakes X-Forwarded-For: 127.0.0.1 to extract intranet phone list.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_negative_note_debug_sally_ssn</code></td><td><strong>Negative ID Debug Leak</strong></td><td>Attacker requests negative note ID (-1) to trigger raw debug SSN dump.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_export_backup_alias_bob_ssn</code></td><td><strong>Backup Alias Flap</strong></td><td>Attacker requests alias=samples on /files to dump raw customer JSON.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_method_override_dump_bob_email</code></td><td><strong>Method Override Bypass</strong></td><td>Attacker sends X-HTTP-Method-Override: DUMP to dump customer emails.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_dormant_ransomware_execution</code></td><td><strong>Dormant Mock Ransomware</strong></td><td>1999 Fax Spooler attachment triggers mock encryption on export files and drops ransom note.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_trojan_horse_clippy_tampering</code></td><td><strong>90s Office Assistant Trojan</strong></td><td>Office Assistant optimizer secretly inflates ledger balances by 5,000 for hidden diversion.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_90s_adware_popup_injection</code></td><td><strong>90s Adware &amp; Popup Spammer</strong></td><td>Shareware popup engine injects casino spawn scripts and banner ads into invoices.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+<tr><td><code>test_legacy_mail_drop_trojan</code></td><td><strong>Outlook Phishing Dropper</strong></td><td>MAPI mail attachment handler executes VBS/EXE attachments and leaks canaries.</td><td><span class="tag tag-pass" title="Backdoor or trojan was successfully neutralized">BLOCKED</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-title">DADA Vol 1 Preventative Armory Measures</div>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 25%;">Armory Directive</th>
+          <th style="width: 25%;">DADA Layer</th>
+          <th style="width: 40%;">Defensive Capability Verified</th>
+          <th style="width: 10%;">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>test_ring0_secrets_hygiene</code></td><td><strong>Ring 0 — Secrets Hygiene</strong></td><td>Plaintext customer files purged; .gitignore guards databases, tokens, and keys.</td><td><span class="tag tag-pass" title="Defensive measure verified active">VERIFIED</span></td></tr>
+<tr><td><code>test_ring1_5s_dead_code_pruning</code></td><td><strong>Ring 1 — 5S Dead Code Pruning</strong></td><td>Unused dead directories, prototypes, and misleading trap scripts excised.</td><td><span class="tag tag-pass" title="Defensive measure verified active">VERIFIED</span></td></tr>
+<tr><td><code>test_ring1_trojan_quarantine</code></td><td><strong>Ring 1 — 90s Trojan Quarantine</strong></td><td>Untrusted employee-downloaded office packs and mock malware completely removed.</td><td><span class="tag tag-pass" title="Defensive measure verified active">VERIFIED</span></td></tr>
+<tr><td><code>test_ring3_network_lockdown</code></td><td><strong>Ring 3 — Sockets Isolation</strong></td><td>Unauthorized background metrics daemons severed; binds strictly to loopback.</td><td><span class="tag tag-pass" title="Defensive measure verified active">VERIFIED</span></td></tr>
+<tr><td><code>test_vector05_method_fencing</code></td><td><strong>Vector 05 — Method Fencing</strong></td><td>Strict least-privilege dispatch rejects non-standard HTTP methods with 405.</td><td><span class="tag tag-pass" title="Defensive measure verified active">VERIFIED</span></td></tr>
+<tr><td><code>test_vector06_egress_pii_scrubber</code></td><td><strong>Vector 06 — Egress DLP Redaction</strong></td><td>Presidio-style output filter automatically scrubs SSN, phone, and canary patterns.</td><td><span class="tag tag-pass" title="Defensive measure verified active">VERIFIED</span></td></tr>
+<tr><td><code>test_vector08_security_headers</code></td><td><strong>Vector 08 — Security Headers</strong></td><td>Enforces Content-Security-Policy, X-Content-Type-Options: nosniff, and X-Frame-Options: DENY.</td><td><span class="tag tag-pass" title="Defensive measure verified active">VERIFIED</span></td></tr>
+<tr><td><code>test_vector09_adware_clean_canvas</code></td><td><strong>Vector 09 — Clean Response Canvas</strong></td><td>All rendered web pages are free from popup scripts, window.open, and spam banners.</td><td><span class="tag tag-pass" title="Defensive measure verified active">VERIFIED</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <div>Tankbench · Defensive Security Hardening Benchmark</div>
+    <div>Zero Horizontal Scroll · Cascadia Mono · HNAI Canon</div>
+  </div>
+
+</body>
+</html>

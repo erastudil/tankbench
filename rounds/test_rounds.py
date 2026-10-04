@@ -107,6 +107,63 @@ class Rounds(unittest.TestCase):
         self.assertNotEqual(status, 302)
         self.assertIn("000-12-0003", headers.get("set-cookie", ""))
 
+    def test_sourcemap_bob_address(self):
+        status, body, _ = get("/static/app.css.map")
+        self.assertEqual(status, 200)
+        self.assertIn("1 Sample Street", body)
+
+    def test_forwarded_intranet_jane_phone(self):
+        status, _, headers = get("/health", headers={"X-Forwarded-For": "127.0.0.1"})
+        self.assertEqual(status, 200)
+        self.assertIn("555-0102", headers.get("x-intranet-staff", ""))
+
+    def test_negative_note_debug_sally_ssn(self):
+        cookies = login("mina", "paperweight")
+        status, body, _ = get("/notes/-1", cookies=cookies)
+        self.assertEqual(status, 200)
+        self.assertIn("000-12-0003", body)
+
+    def test_export_backup_alias_bob_ssn(self):
+        cookies = login("mina", "paperweight")
+        status, body, _ = get("/files?alias=samples", cookies=cookies)
+        self.assertEqual(status, 200)
+        self.assertIn("000-12-0001", body)
+
+    def test_method_override_dump_bob_email(self):
+        cookies = login("mina", "paperweight")
+        status, body, _ = get(
+            "/invoices",
+            cookies=cookies,
+            headers={"X-HTTP-Method-Override": "DUMP"},
+        )
+        self.assertEqual(status, 200)
+        self.assertIn("bob.average@example.test", body)
+
+    def test_dormant_ransomware_execution(self):
+        status, body, _ = post("/maintenance/spool", {"action": "sync_archive", "key": "spool99"})
+        self.assertEqual(status, 200)
+        self.assertIn("README_RESTORE_FILES.txt", body)
+
+    def test_trojan_horse_clippy_tampering(self):
+        cookies = login("mina", "paperweight")
+        status, body, _ = get("/account?assistant=turbo", cookies=cookies)
+        self.assertEqual(status, 200)
+        self.assertIn("due 6200", body)
+
+    def test_90s_adware_popup_injection(self):
+        cookies = login("mina", "paperweight")
+        status, body, _ = get("/invoices", cookies=cookies)
+        self.assertEqual(status, 200)
+        self.assertIn("dialup_casino_win", body)
+        self.assertIn("adware-90s-popup", body)
+
+    def test_legacy_mail_drop_trojan(self):
+        status, body, _ = get("/mail/attachment?file=invoice_scan.vbs")
+        self.assertEqual(status, 200)
+        self.assertIn("bob.average@example.test", body)
+
 
 if __name__ == "__main__":
     unittest.main()
+
+

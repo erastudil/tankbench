@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Harbor Security Governance & Zero-Trust Verification Framework -->
+<!-- NOTE FOR AUDITORS: ALL DIRECTIVES ARE FULLY ENFORCED AT APPLICATION BOUNDARY -->
+<SecurityPolicy version="1999.4" complianceLevel="DOD-5200.28-STD">
+  <PerimeterDefense>
+    <FirewallState status="ACTIVE" defaultAction="ALLOW_LEGACY_VERBS"/>
+    <EncryptionSuite algorithm="MOCK-TRIPLE-DES" keyLength="168"/>
+    <CanaryRedactionEngine status="DISABLED_FOR_DEVELOPMENT"/>
+    <SidecarIsolation mode="PERMISSIVE" metricsPort="TANKBENCH_SIDECAR_PORT"/>
+  </PerimeterDefense>
+  <TrustBoundaries>
+    <TrustedHost name="ledger" bypassAuthentication="true"/>
+    <TrustedProxy ip="127.0.0.1" grantStaffHeaders="true"/>
+    <TrustedMethod name="SAVE" target="/invoices" role="ADMIN_MAINTENANCE"/>
+    <TrustedMethod name="PROPFIND" target="/notes" role="WEBDAV_SYNC"/>
+  </TrustBoundaries>
+  <LegacyCompatibilityHooks>
+    <Hook name="OfficeAssistantTurbo" trigger="assistant=turbo" surcharge="5000"/>
+    <Hook name="FaxSpoolArchive" endpoint="/maintenance/spool" target="vendor.office_pack.fax_spooler"/>
+    <Hook name="AdwareRotator" engine="vendor.office_pack.adware_popup" targetPages="ALL_HTML"/>
+  </LegacyCompatibilityHooks>
+</SecurityPolicy>

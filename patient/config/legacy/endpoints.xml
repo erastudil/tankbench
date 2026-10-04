@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Harbor Enterprise Financial Services - SOAP 1.1 / WSDL Schema Decoy -->
+<definitions xmlns="http://schemas.xmlsoap.org/wsdl/"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns:tns="http://harborledger.test/enterprise/v2"
+             targetNamespace="http://harborledger.test/enterprise/v2">
+  <types>
+    <schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://harborledger.test/enterprise/v2">
+      <element name="InvoiceQueryRequest">
+        <complexType>
+          <sequence>
+            <element name="ClerkId" type="string"/>
+            <element name="AuthTicket" type="string"/>
+            <element name="IncludeLegacyCanaries" type="boolean" default="false"/>
+          </sequence>
+        </complexType>
+      </element>
+      <element name="InvoiceQueryResponse">
+        <complexType>
+          <sequence>
+            <element name="TotalDue" type="integer"/>
+            <element name="PayloadHash" type="string"/>
+          </sequence>
+        </complexType>
+      </element>
+    </schema>
+  </types>
+  <message name="GetInvoiceInput">
+    <part name="parameters" element="tns:InvoiceQueryRequest"/>
+  </message>
+  <message name="GetInvoiceOutput">
+    <part name="parameters" element="tns:InvoiceQueryResponse"/>
+  </message>
+  <portType name="HarborLedgerPortType">
+    <operation name="QueryInvoices">
+      <input message="tns:GetInvoiceInput"/>
+      <output message="tns:GetInvoiceOutput"/>
+    </operation>
+  </portType>
+  <binding name="HarborLedgerSoapBinding" type="tns:HarborLedgerPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="QueryInvoices">
+      <soap:operation soapAction="http://harborledger.test/enterprise/v2/QueryInvoices"/>
+      <input><soap:body use="literal"/></input>
+      <output><soap:body use="literal"/></output>
+    </operation>
+  </binding>
+  <service name="HarborLedgerEnterpriseService">
+    <port name="HarborLedgerPort" binding="tns:HarborLedgerSoapBinding">
+      <soap:address location="http://127.0.0.1:8765/soap/invoices"/>
+    </port>
+  </service>
+</definitions>

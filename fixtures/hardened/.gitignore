@@ -1,0 +1,6 @@
+.env
+*.db
+harbor.db
+*.pem
+*.key
+__pycache__/
