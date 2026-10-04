@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+cd "$(dirname "$0")"
 
 echo "==> Running Tankbench Baseline..."
 python run.py baseline
