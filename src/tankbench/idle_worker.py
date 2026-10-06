@@ -190,8 +190,10 @@ class IdleWorkerConfig:
     schedule_pattern: List[WorkCategory] = field(default_factory=lambda: list(DEFAULT_SCHEDULE_PATTERN))
     rss_feeds: List[str] = field(default_factory=lambda: list(DEFAULT_RSS_FEEDS))
     seen_guids_file: Optional[Path] = None
+    log_file_path: Optional[Path] = None
     enable_live_rss: bool = True
     rss_timeout_s: float = 2.5
+    verbose: bool = True
 
 class IdleComputeWorker:
     def __init__(self, config: Optional[IdleWorkerConfig] = None) -> None:
@@ -228,6 +230,20 @@ class IdleComputeWorker:
         except Exception as ex:
             logger.warning(f"Could not save seen GUIDs to {self._seen_guids_path}: {ex}")
 
+    def _append_log(self, res: IdleWorkResult) -> None:
+        log_path = self.config.log_file_path or Path("C:/Users/jpm05/Documents/tankbench/idle_worker.log")
+        ts = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        status = "PASS" if res.success else "FAIL"
+        line = f"[{ts}] [{status}] category={res.category.value:<22} item_id={res.item_id:<26} latency_ms={res.latency_ms:.2f}\n"
+        try:
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(line)
+        except Exception as ex:
+            logger.debug(f"Failed to append to log file {log_path}: {ex}")
+        if self.config.verbose:
+            print(f"[{ts}] [{status}] {res.category.value:<22} ID: {res.item_id:<26} ({res.latency_ms:.2f} ms)", flush=True)
+
     def next_category(self) -> WorkCategory:
         pattern = self.config.schedule_pattern or DEFAULT_SCHEDULE_PATTERN
         cat = pattern[self._category_index % len(pattern)]
@@ -236,6 +252,10 @@ class IdleComputeWorker:
 
     def is_priority_interrupted(self) -> bool:
         if self.config.priority_flag_file and self.config.priority_flag_file.exists():
+            return True
+        default_local = Path("C:/Users/jpm05/Documents/tankbench/PRIORITY_INTERRUPT")
+        default_temp = Path(tempfile.gettempdir()) / "SOVEREIGN_PRIORITY_INTERRUPT"
+        if default_local.exists() or default_temp.exists():
             return True
         return False
 
@@ -460,6 +480,7 @@ class IdleComputeWorker:
             self.current_backoff = self.config.backoff_initial_s
             self.history.append(res)
             self.cycle_count += 1
+            self._append_log(res)
             return res
 
         except Exception as ex:
@@ -474,6 +495,7 @@ class IdleComputeWorker:
                 error=str(ex),
             )
             self.history.append(err_res)
+            self._append_log(err_res)
             time.sleep(self.current_backoff)
             self.current_backoff = min(self.config.backoff_max_s, self.current_backoff * self.config.backoff_factor)
             return err_res
@@ -507,6 +529,7 @@ def run_worker_cli(
         max_cycles=cycles,
         dry_run=dry_run,
         sample_interval_s=sample_interval_s,
+        verbose=not as_json,
     )
     worker = IdleComputeWorker(config=config)
     results = worker.run()
@@ -514,16 +537,13 @@ def run_worker_cli(
     if as_json:
         payload = [r.to_dict() for r in results]
         print(json.dumps(payload, indent=2))
-    else:
+    elif not continuous:
         print("=" * 78)
         print("      UPGRADED WEIGHTED IDLE COMPUTE WORKER EXECUTION TRACE")
         print("=" * 78)
         counts: Dict[str, int] = {}
         for r in results:
-            status = "PASS" if r.success else "FAIL"
             counts[r.category.value] = counts.get(r.category.value, 0) + 1
-            print(f"[{status}] {r.category.value:<22} ID: {r.item_id:<24} ({r.latency_ms:.2f} ms)")
-        print("-" * 78)
         total = len(results)
         print(f"Total Cycles Completed: {total}")
         for cat, cnt in counts.items():
