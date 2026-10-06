@@ -21,6 +21,13 @@ from tankbench.ci_gate import (
     run_ci_gate,
 )
 from tankbench.harness import grade, repo_root
+from tankbench.idle_worker import (
+    IdleComputeWorker,
+    IdleWorkerConfig,
+    IdleWorkResult,
+    WorkCategory,
+    run_worker_cli,
+)
 from tankbench.pairwise import (
     ComparisonResult,
     PairwiseComparison,
@@ -37,6 +44,13 @@ from tankbench.rag_triad import (
     compute_groundedness,
     evaluate_rag_dataset,
     evaluate_rag_triad,
+)
+from tankbench.reset_blast import (
+    BlastConfig,
+    BlastResult,
+    QuotaProvider,
+    ResetDayBlastRunner,
+    run_blast_cli,
 )
 from tankbench.scoring import Score, fold
 
@@ -72,4 +86,14 @@ __all__ = [
     "CIEvaluationGate",
     "compute_distribution_metrics",
     "run_ci_gate",
+    "WorkCategory",
+    "IdleWorkResult",
+    "IdleWorkerConfig",
+    "IdleComputeWorker",
+    "run_worker_cli",
+    "QuotaProvider",
+    "BlastConfig",
+    "BlastResult",
+    "ResetDayBlastRunner",
+    "run_blast_cli",
 ]

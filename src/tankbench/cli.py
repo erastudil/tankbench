@@ -13,6 +13,8 @@ from tankbench.harness import grade, repo_root
 from tankbench.pairwise import evaluate_pairwise
 from tankbench.rag_triad import evaluate_rag_dataset, evaluate_rag_triad
 from tankbench.report import generate_html_report
+from tankbench.idle_worker import run_worker_cli
+from tankbench.reset_blast import run_blast_cli
 
 
 def _print_json(score, *, kind: str) -> None:
@@ -100,6 +102,18 @@ def _setup_gate_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--verbose", action="store_true", help="Print detailed per-item evaluation records")
 
 
+def _setup_worker_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--cycles", type=int, default=4, help="Maximum number of work cycles to run (default: 4)")
+    parser.add_argument("--dry-run", action="store_true", help="Simulate idle execution without state mutations")
+    parser.add_argument("--json", action="store_true", help="Output raw JSON execution trace")
+
+
+def _setup_blast_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--blast-authorized", action="store_true", help="Explicit confirmation flag authorizing quota consumption")
+    parser.add_argument("--dry-run", action="store_true", help="Verify safety fences and print target providers without running workloads")
+    parser.add_argument("--json", action="store_true", help="Output raw JSON telemetry")
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="tankbench", description="Defensive security benchmark and generative AI evaluation suite.")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -142,6 +156,20 @@ def main(argv: list[str] | None = None) -> int:
 
     ci_gate_parser = sub.add_parser("ci-gate", help="Alias for 'gate' command")
     _setup_gate_arguments(ci_gate_parser)
+
+    # Opportunistic Idle Compute Worker
+    worker_parser = sub.add_parser("worker", help="Run opportunistic idle compute worker across rotating sectors")
+    _setup_worker_arguments(worker_parser)
+
+    idle_worker_parser = sub.add_parser("idle-worker", help="Alias for 'worker' command")
+    _setup_worker_arguments(idle_worker_parser)
+
+    # Reset Day Blast Workflow
+    blast_parser = sub.add_parser("blast", help="Run Reset Day Blast workflow to consume expiring quotas under safety fences")
+    _setup_blast_arguments(blast_parser)
+
+    reset_blast_parser = sub.add_parser("reset-blast", help="Alias for 'blast' command")
+    _setup_blast_arguments(reset_blast_parser)
 
     # WO-03: Direct evaluation commands
     ev = sub.add_parser("eval", help="Evaluate inputs directly with deterministic assertions, RAG Triad, or pairwise")
@@ -309,6 +337,22 @@ def main(argv: list[str] | None = None) -> int:
             print("\nDashboard stopped.")
         return 0
 
+    # Opportunistic Idle Worker Handler
+    if args.cmd in ("worker", "idle-worker"):
+        return run_worker_cli(
+            max_cycles=args.cycles,
+            dry_run=args.dry_run,
+            as_json=args.json,
+        )
+
+    # Reset Day Blast Handler
+    if args.cmd in ("blast", "reset-blast"):
+        return run_blast_cli(
+            blast_authorized=args.blast_authorized,
+            dry_run=args.dry_run,
+            as_json=args.json,
+        )
+
     # WO-10: CI/CD Gate CLI Handler
     if args.cmd in ("gate", "ci-gate"):
         thresholds = GateThresholds(
@@ -367,3 +411,6 @@ def main(argv: list[str] | None = None) -> int:
 
     return 2
 
+
+if __name__ == "__main__":
+    sys.exit(main())
