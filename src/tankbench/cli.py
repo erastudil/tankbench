@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import argparse
 import http.server
@@ -7,7 +7,11 @@ import sys
 import webbrowser
 from pathlib import Path
 
+from tankbench.assertions import evaluate_assertions
+from tankbench.ci_gate import GateThresholds, run_ci_gate
 from tankbench.harness import grade, repo_root
+from tankbench.pairwise import evaluate_pairwise
+from tankbench.rag_triad import evaluate_rag_dataset, evaluate_rag_triad
 from tankbench.report import generate_html_report
 
 
@@ -83,8 +87,21 @@ def _print_human(score, *, kind: str, target: str = "") -> None:
     print(sep)
 
 
+def _setup_gate_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--candidate", type=Path, required=True, help="Path to candidate outputs/evaluation JSON dataset")
+    parser.add_argument("--baseline", type=Path, default=None, help="Path to golden baseline JSON dataset")
+    parser.add_argument("--min-assertion-score", type=float, default=1.0, help="Minimum assertion pass rate [0.0-1.0] (default: 1.0)")
+    parser.add_argument("--min-rag-score", type=float, default=0.80, help="Minimum RAG Triad score [0.0-1.0] (default: 0.80)")
+    parser.add_argument("--min-groundedness", type=float, default=0.70, help="Minimum groundedness threshold before flagging hallucination (default: 0.70)")
+    parser.add_argument("--min-pairwise-score", type=float, default=0.0, help="Minimum pairwise win score vs baseline (default: 0.0)")
+    parser.add_argument("--max-drift", type=float, default=0.20, help="Maximum Jensen-Shannon divergence threshold (default: 0.20)")
+    parser.add_argument("--max-score-drop", type=float, default=0.05, help="Maximum allowable regression drop vs baseline (default: 0.05)")
+    parser.add_argument("--json", action="store_true", help="Output raw JSON instead of human scorecard")
+    parser.add_argument("--verbose", action="store_true", help="Print detailed per-item evaluation records")
+
+
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(prog="tankbench", description="Defensive security benchmark for coding agents.")
+    p = argparse.ArgumentParser(prog="tankbench", description="Defensive security benchmark and generative AI evaluation suite.")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     b = sub.add_parser("baseline", help="Evaluate unpatched patient baseline (alive pass, all rounds hit)")
@@ -119,14 +136,32 @@ def main(argv: list[str] | None = None) -> int:
     e.add_argument("--format", choices=["swe-bench", "inspect", "json"], default="json", help="Export format standard")
     e.add_argument("--out", type=Path, default=None, help="File to write exported dataset")
 
+    # WO-10: Automated CI/CD Regression Gate commands
+    gate_parser = sub.add_parser("gate", help="Run continuous automated CI/CD regression evaluation gate")
+    _setup_gate_arguments(gate_parser)
+
+    ci_gate_parser = sub.add_parser("ci-gate", help="Alias for 'gate' command")
+    _setup_gate_arguments(ci_gate_parser)
+
+    # WO-03: Direct evaluation commands
+    ev = sub.add_parser("eval", help="Evaluate inputs directly with deterministic assertions, RAG Triad, or pairwise")
+    ev.add_argument("--mode", choices=["assertions", "rag", "pairwise"], default="assertions", help="Evaluation metric module")
+    ev.add_argument("--file", type=Path, default=None, help="JSON input file containing items to evaluate")
+    ev.add_argument("--query", type=str, default="", help="Query string for RAG evaluation")
+    ev.add_argument("--context", type=str, default="", help="Context string for RAG evaluation")
+    ev.add_argument("--response", type=str, default="", help="Response string to evaluate")
+    ev.add_argument("--expected", type=str, default="", help="Expected exact output")
+    ev.add_argument("--pattern", type=str, default="", help="Regex pattern to assert")
+    ev.add_argument("--json", action="store_true", help="Output raw JSON")
+
     args = p.parse_args(argv)
 
     if args.cmd == "prompt":
-        sys.stdout.write((repo_root() / "prompts" / "harden.md").read_text(encoding="utf-8"))
+        sys.stdout.write((repo_root() / "prompts" / "harden.md").read_text(encoding="utf-8-sig"))
         return 0
 
     if args.cmd == "export":
-        prompt_text = (repo_root() / "prompts" / "harden.md").read_text(encoding="utf-8")
+        prompt_text = (repo_root() / "prompts" / "harden.md").read_text(encoding="utf-8-sig")
         if args.format == "swe-bench":
             data = {
                 "instance_id": "tankbench-harbor-ledger-2.4",
@@ -274,4 +309,61 @@ def main(argv: list[str] | None = None) -> int:
             print("\nDashboard stopped.")
         return 0
 
+    # WO-10: CI/CD Gate CLI Handler
+    if args.cmd in ("gate", "ci-gate"):
+        thresholds = GateThresholds(
+            min_assertion_score=args.min_assertion_score,
+            min_rag_score=args.min_rag_score,
+            min_groundedness=args.min_groundedness,
+            min_pairwise_score=args.min_pairwise_score,
+            max_drift=args.max_drift,
+            max_score_drop=args.max_score_drop,
+        )
+        return run_ci_gate(
+            candidate=args.candidate,
+            baseline=args.baseline,
+            thresholds=thresholds,
+            as_json=args.json,
+            verbose=args.verbose,
+        )
+
+    # WO-03: Eval Command Handler
+    if args.cmd == "eval":
+        if args.mode == "rag":
+            if args.file:
+                items = json.loads(args.file.read_text(encoding="utf-8-sig"))
+                res = evaluate_rag_dataset(items if isinstance(items, list) else [items])
+                payload = res.to_dict()
+            else:
+                score = evaluate_rag_triad(args.query, args.context, args.response)
+                payload = score.to_dict()
+        elif args.mode == "pairwise":
+            if not args.file:
+                print("eval in pairwise mode requires --file", file=sys.stderr)
+                return 2
+            items = json.loads(args.file.read_text(encoding="utf-8-sig"))
+            res = evaluate_pairwise(items if isinstance(items, list) else [items])
+            payload = res.to_dict()
+        else:
+            # assertions
+            if args.file:
+                specs = json.loads(args.file.read_text(encoding="utf-8-sig"))
+                res = evaluate_assertions(specs if isinstance(specs, list) else [specs], default_output=args.response)
+                payload = res.to_dict()
+            else:
+                specs = []
+                if args.expected:
+                    specs.append({"type": "exact_match", "output": args.response, "expected": args.expected})
+                if args.pattern:
+                    specs.append({"type": "regex", "output": args.response, "pattern": args.pattern})
+                res = evaluate_assertions(specs)
+                payload = res.to_dict()
+
+        if args.json:
+            print(json.dumps(payload, indent=2))
+        else:
+            print(json.dumps(payload, indent=2))
+        return 0
+
     return 2
+

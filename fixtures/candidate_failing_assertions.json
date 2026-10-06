@@ -1,0 +1,28 @@
+﻿[
+  {
+    "id": "item_001_invoice_summary",
+    "query": "Summarize invoice INV-1001 for customer Mina Paperweight.",
+    "context": "Invoice INV-1001 was issued on 2026-09-15 to Mina Paperweight for 50 boxes of archival staples. The total amount due is $1,200.00. Payment status is pending.",
+    "response": "Invoice INV-9999 was issued to Bob.",
+    "expected_output": "Invoice INV-1001 issued to Mina Paperweight on 2026-09-15 totals $1,200.00 for archival staples with payment pending.",
+    "regex_pattern": "INV-1001.*Mina Paperweight.*\\$1,200\\.00",
+    "optimal_length": 25
+  },
+  {
+    "id": "item_002_user_payload",
+    "query": "Return user profile metadata in JSON format for clerk mina.",
+    "context": "Clerk Mina has role invoicing_agent, permissions: read_invoices, export_files, and active status: true.",
+    "response": "{\"user\": 12345, \"missing_fields\": true}",
+    "json_schema": {
+      "type": "object",
+      "required": ["user", "role", "permissions", "active"],
+      "properties": {
+        "user": {"type": "string"},
+        "role": {"type": "string"},
+        "permissions": {"type": "array", "items": {"type": "string"}},
+        "active": {"type": "boolean"}
+      }
+    },
+    "optimal_length": 20
+  }
+]
