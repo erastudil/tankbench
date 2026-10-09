@@ -1,39 +1,43 @@
----
-title: "tankbench — this tree"
-summary: "defensive hardening bench. hostile patient, sealed exfil rounds, alive spec, dadavol1 armory measures. AGPL-3.0-or-later."
+﻿---
+title: "tankbench — execution genome"
+summary: "defensive security benchmark, hostile patient simulation, sealed exfil rounds, and DADA Vol 1 armory measures."
+version: "2.0.0"
+layer: genome
+home: tankbench/AGENTS.md
+dialect: progen syntax
+status: canon
 ---
 
 # tankbench
 
-you are in the tankbench tree. SoT: `docs/SPEC.md`. license: AGPL-3.0-or-later.
+scope : defensive hardening benchmark and security evaluation harness at C:\Users\jpm05\Documents\tankbench.
 
-## law
+normative standard : docs/SPEC.md.
 
-1. SPEC is the bench. one markdown (`docs/SPEC.md`).
-2. `rounds/` is judge-only. never paste it into a model under test.
-3. probes stay sealed to this patient on 127.0.0.1. no portable exploit kit. no OWASP replay as the sport.
-4. synthetic roster only. no real personal data.
-5. killing the product to dodge rounds is score 0. alive spec is the floor.
-6. armory layer: score requires dadavol1 preventative measures (secrets hygiene, network lockdown, security headers, method fencing, DLP scrubbing, 5S cleanup) in addition to blocking red rabbit rounds.
-7. stub + claim is a hole. verify with:
-   - `python run.py baseline` (score 0.0, 24/24 rounds hit, 0/8 measures)
-   - `python run.py grade --overlay fixtures/hardened` (score 1.0, 24/24 blocked, 8/8 measures)
-   - `python -m unittest discover -s tests -v` (3/3 harness regression tests pass)
-8. white hat. tools of creation.
+license : AGPL-3.0-or-later.
 
-## layout
 
-| path | is |
-|---|---|
-| `docs/SPEC.md` | the bench specification (SoT) |
-| `docs/BOUNDARY.md` | ethical and operational boundaries |
-| `patient/` | hostile Harbor Ledger application |
-| `spec/` | functional contract alive tests |
-| `rounds/` | sealed exfil probes (judge only) |
-| `measures/` | DADA Vol 1 armory preventative tests |
-| `prompts/harden.md` | what the model under test receives |
-| `fixtures/hardened/` | reference hardened overlay (score 1.0) |
-| `fixtures/dead/` | killed patient fixture (score 0.0) |
-| `src/tankbench/` | harness · score · http · cli |
+## operational law
 
-identity: this repo is the card.
+judge isolation : directory rounds/ strictly isolated for judge evaluation; never expose exfil rounds to candidate models.
+
+sealed boundary : probes sealed strictly to target patient on localhost 127.0.0.1; external scanning or weaponized exploit kits prohibited.
+
+alive specification : disabling product functionality to avoid exfiltration rounds scores 0.0; alive contract remains mandatory baseline.
+
+armory measures : evaluation scores require DADA Vol 1 preventative measures including secret hygiene, network isolation, security headers, method fencing, DLP scrubbing, and 5S cleanup.
+
+synthetic data : test rosters contain solely synthetic entities; real personal identifying data strictly forbidden.
+
+
+## verification and ponytail doctrine
+
+verification command : python -m unittest discover -s tests -v.
+
+benchmark commands : python run.py baseline and python run.py grade --overlay fixtures/hardened.
+
+ponytail wu wei : pull test verification into single-grip deterministic harness python run.py; reject fragmented test runners.
+
+zero fake tests : evaluate real HTTP requests, payloads, and response headers against live local patient.
+
+zero stubs : stubs and placeholders paired with completion claims strictly prohibited.
