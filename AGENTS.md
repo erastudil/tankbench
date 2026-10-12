@@ -30,13 +30,13 @@ armory measures : evaluation scores require DADA Vol 1 preventative measures inc
 synthetic data : test rosters contain solely synthetic entities; real personal identifying data strictly forbidden.
 
 
-## verification and ponytail doctrine
+## verification and wuwei doctrine
 
 verification command : python -m unittest discover -s tests -v.
 
 benchmark commands : python run.py baseline and python run.py grade --overlay fixtures/hardened.
 
-ponytail wu wei : pull test verification into single-grip deterministic harness python run.py; reject fragmented test runners.
+wuwei wu wei : pull test verification into single-grip deterministic harness python run.py; reject fragmented test runners.
 
 zero fake tests : evaluate real HTTP requests, payloads, and response headers against live local patient.
 
