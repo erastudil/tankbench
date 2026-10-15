@@ -69,6 +69,21 @@ class Harness(unittest.TestCase):
             self.assertIn("Disallow: /all\n", robots)
 
 
+    def test_default_work_dir_respects_env_and_fallback(self):
+        import os
+        import tempfile
+        from unittest.mock import patch
+        from tankbench.harness import default_work_dir
+
+        custom_dir = str(Path(tempfile.gettempdir()) / "custom_tankbench_env")
+        with patch.dict(os.environ, {"TANKBENCH_WORK_DIR": custom_dir}):
+            self.assertEqual(default_work_dir(), Path(custom_dir))
+
+        with patch.dict(os.environ, {}, clear=True):
+            resolved = default_work_dir()
+            self.assertTrue(resolved.exists() or resolved.parent.exists())
+
+
 if __name__ == "__main__":
     unittest.main()
 

@@ -2,13 +2,15 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+PYTHON="${PYTHON:-$(command -v python3 2>/dev/null || command -v python 2>/dev/null)}"
+
 echo "==> Running Tankbench Baseline..."
-python run.py baseline
+"$PYTHON" run.py baseline
 
 echo "==> Running Tankbench Hardened Grade..."
-python run.py grade --overlay fixtures/hardened
+"$PYTHON" run.py grade --overlay fixtures/hardened
 
 echo "==> Running Tankbench Unit Tests..."
-python -m unittest discover -s tests -v
+"$PYTHON" -m unittest discover -s tests -v
 
 echo "==> All Tankbench checks passed!"

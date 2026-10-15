@@ -12,6 +12,7 @@ from tankbench.assertions import (
     assert_regex,
     evaluate_assertion,
     evaluate_assertions,
+    validate_schema_fallback,
 )
 from tankbench.ci_gate import (
     CIEvaluationGate,
@@ -20,7 +21,7 @@ from tankbench.ci_gate import (
     compute_distribution_metrics,
     run_ci_gate,
 )
-from tankbench.harness import grade, repo_root
+from tankbench.harness import default_work_dir, grade, repo_root
 from tankbench.idle_worker import (
     IdleComputeWorker,
     IdleWorkerConfig,
@@ -57,6 +58,7 @@ from tankbench.scoring import Score, fold
 __all__ = [
     "Score",
     "fold",
+    "default_work_dir",
     "grade",
     "repo_root",
     "AssertionType",
@@ -68,6 +70,7 @@ __all__ = [
     "assert_json_schema",
     "evaluate_assertion",
     "evaluate_assertions",
+    "validate_schema_fallback",
     "RAGTriadScore",
     "RAGBatchScore",
     "compute_context_relevance",

@@ -126,7 +126,13 @@ def assert_regex(
     )
 
 
-def _validate_schema_fallback(data: Any, schema: dict[str, Any]) -> tuple[bool, str]:
+def validate_schema_fallback(data: Any, schema: dict[str, Any]) -> tuple[bool, str]:
+    """Fallback JSON Schema validator when jsonschema package is absent.
+
+    Validates types (including null and disallowing bool as int/float), enums,
+    numeric ranges (minimum/maximum), string lengths (minLength/maxLength),
+    and nested object/array schemas.
+    """
     expected_type = schema.get("type")
     type_map = {
         "string": str,
@@ -136,9 +142,32 @@ def _validate_schema_fallback(data: Any, schema: dict[str, Any]) -> tuple[bool, 
         "array": list,
         "object": dict,
     }
-    if expected_type and expected_type in type_map:
+    if expected_type == "null":
+        if data is not None:
+            return False, f"Expected type null, got {type(data).__name__}"
+    elif expected_type and expected_type in type_map:
+        if expected_type == "integer" and isinstance(data, bool):
+            return False, "Expected type integer, got bool"
+        if expected_type == "number" and isinstance(data, bool):
+            return False, "Expected type number, got bool"
         if not isinstance(data, type_map[expected_type]):
             return False, f"Expected type {expected_type}, got {type(data).__name__}"
+
+    if "enum" in schema:
+        if data not in schema["enum"]:
+            return False, f"Value {data!r} not in enum {schema['enum']}"
+
+    if isinstance(data, (int, float)) and not isinstance(data, bool):
+        if "minimum" in schema and data < schema["minimum"]:
+            return False, f"Value {data} is less than minimum {schema['minimum']}"
+        if "maximum" in schema and data > schema["maximum"]:
+            return False, f"Value {data} is greater than maximum {schema['maximum']}"
+
+    if isinstance(data, str):
+        if "minLength" in schema and len(data) < schema["minLength"]:
+            return False, f"String length {len(data)} is less than minLength {schema['minLength']}"
+        if "maxLength" in schema and len(data) > schema["maxLength"]:
+            return False, f"String length {len(data)} is greater than maxLength {schema['maxLength']}"
 
     if isinstance(data, dict):
         required = schema.get("required", [])
@@ -148,17 +177,20 @@ def _validate_schema_fallback(data: Any, schema: dict[str, Any]) -> tuple[bool, 
         properties = schema.get("properties", {})
         for prop_name, prop_schema in properties.items():
             if prop_name in data:
-                valid, msg = _validate_schema_fallback(data[prop_name], prop_schema)
+                valid, msg = validate_schema_fallback(data[prop_name], prop_schema)
                 if not valid:
                     return False, f"Property '{prop_name}': {msg}"
     elif isinstance(data, list) and "items" in schema:
         item_schema = schema["items"]
         for idx, item in enumerate(data):
-            valid, msg = _validate_schema_fallback(item, item_schema)
+            valid, msg = validate_schema_fallback(item, item_schema)
             if not valid:
                 return False, f"Item [{idx}]: {msg}"
 
     return True, "Schema valid"
+
+
+_validate_schema_fallback = validate_schema_fallback
 
 
 def assert_json_schema(

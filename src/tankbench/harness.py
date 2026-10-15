@@ -74,6 +74,8 @@ def copy_patient(
     if dest.exists():
         shutil.rmtree(dest)
     shutil.copytree(patient_src(), dest, ignore=shutil.ignore_patterns("harbor.db", "__pycache__"))
+    if (patient_src() / "dead").is_dir() and not (dest / "dead").exists():
+        shutil.copytree(patient_src() / "dead", dest / "dead")
     if overlay:
         prune_file = overlay / ".prune"
         if prune_file.exists():
@@ -208,6 +210,26 @@ def score_dir(
             proc.terminate()
 
 
+def default_work_dir() -> Path:
+    if "TANKBENCH_WORK_DIR" in os.environ:
+        return Path(os.environ["TANKBENCH_WORK_DIR"])
+    candidate = repo_root() / ".work"
+    try:
+        candidate.mkdir(parents=True, exist_ok=True)
+        test_db = candidate / ".probe_lock.db"
+        import sqlite3
+        with sqlite3.connect(test_db) as conn:
+            conn.execute("CREATE TABLE _probe (x INT)")
+            conn.commit()
+        test_db.unlink(missing_ok=True)
+        return candidate
+    except (Exception, OSError):
+        import tempfile
+        fallback = Path(tempfile.gettempdir()) / "tankbench_work"
+        fallback.mkdir(parents=True, exist_ok=True)
+        return fallback
+
+
 def grade(
     *,
     overlay: Path | None = None,
@@ -215,8 +237,9 @@ def grade(
     patch: Path | None = None,
     expect_baseline: bool = False,
     verbose: bool = False,
+    work_dir: Path | None = None,
 ) -> Score:
-    work = repo_root() / ".work" / ("baseline" if expect_baseline else "grade")
+    base_work = work_dir or default_work_dir()
+    work = base_work / ("baseline" if expect_baseline else "grade")
     copy_patient(work, overlay=overlay, app=app, patch=patch)
     return score_dir(work, expect_baseline=expect_baseline, verbose=verbose)
-

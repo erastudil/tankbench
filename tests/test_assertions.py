@@ -112,5 +112,47 @@ class TestDeterministicAssertions(unittest.TestCase):
         self.assertTrue(score.passed_all)
 
 
+    def test_schema_fallback_rejects_bool_for_integer(self):
+        from tankbench.assertions import validate_schema_fallback
+        valid, msg = validate_schema_fallback(True, {"type": "integer"})
+        self.assertFalse(valid)
+        self.assertIn("Expected type integer, got bool", msg)
+
+        valid_num, msg_num = validate_schema_fallback(False, {"type": "number"})
+        self.assertFalse(valid_num)
+        self.assertIn("Expected type number, got bool", msg_num)
+
+    def test_schema_fallback_null_type(self):
+        from tankbench.assertions import validate_schema_fallback
+        valid, _ = validate_schema_fallback(None, {"type": "null"})
+        self.assertTrue(valid)
+
+        invalid, msg = validate_schema_fallback("not-null", {"type": "null"})
+        self.assertFalse(invalid)
+        self.assertIn("Expected type null", msg)
+
+    def test_schema_fallback_enum(self):
+        from tankbench.assertions import validate_schema_fallback
+        schema = {"enum": ["alpha", "beta", "gamma"]}
+        valid, _ = validate_schema_fallback("beta", schema)
+        self.assertTrue(valid)
+
+        invalid, msg = validate_schema_fallback("delta", schema)
+        self.assertFalse(invalid)
+        self.assertIn("not in enum", msg)
+
+    def test_schema_fallback_range_and_length_constraints(self):
+        from tankbench.assertions import validate_schema_fallback
+        num_schema = {"type": "integer", "minimum": 10, "maximum": 50}
+        self.assertTrue(validate_schema_fallback(25, num_schema)[0])
+        self.assertFalse(validate_schema_fallback(5, num_schema)[0])
+        self.assertFalse(validate_schema_fallback(55, num_schema)[0])
+
+        str_schema = {"type": "string", "minLength": 3, "maxLength": 8}
+        self.assertTrue(validate_schema_fallback("hello", str_schema)[0])
+        self.assertFalse(validate_schema_fallback("hi", str_schema)[0])
+        self.assertFalse(validate_schema_fallback("supercalifragilistic", str_schema)[0])
+
+
 if __name__ == "__main__":
     unittest.main()
