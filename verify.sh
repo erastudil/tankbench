@@ -2,6 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+export PYTHONPATH="src${PYTHONPATH:+:$PYTHONPATH}"
 PYTHON="${PYTHON:-$(command -v python3 2>/dev/null || command -v python 2>/dev/null)}"
 
 echo "==> Running Tankbench Baseline..."

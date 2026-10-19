@@ -215,13 +215,17 @@ def default_work_dir() -> Path:
         return Path(os.environ["TANKBENCH_WORK_DIR"])
     candidate = repo_root() / ".work"
     try:
+        from contextlib import closing
+        import sqlite3
+
         candidate.mkdir(parents=True, exist_ok=True)
         test_db = candidate / ".probe_lock.db"
-        import sqlite3
-        with sqlite3.connect(test_db) as conn:
-            conn.execute("CREATE TABLE _probe (x INT)")
-            conn.commit()
-        test_db.unlink(missing_ok=True)
+        try:
+            with closing(sqlite3.connect(test_db)) as conn:
+                with conn:
+                    conn.execute("CREATE TABLE IF NOT EXISTS _probe (x INT)")
+        finally:
+            test_db.unlink(missing_ok=True)
         return candidate
     except (Exception, OSError):
         import tempfile

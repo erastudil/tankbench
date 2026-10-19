@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import tempfile
 import unittest
@@ -19,8 +19,20 @@ from tankbench.idle_worker import (
 
 class TestIdleComputeWorker(unittest.TestCase):
     def setUp(self) -> None:
-        self.config = IdleWorkerConfig(sample_interval_s=0.0, backoff_initial_s=0.01, backoff_max_s=0.1)
+        self._tmp_dir = tempfile.TemporaryDirectory()
+        self.tmp_path = Path(self._tmp_dir.name)
+        self.config = IdleWorkerConfig(
+            sample_interval_s=0.0,
+            backoff_initial_s=0.01,
+            backoff_max_s=0.1,
+            seen_guids_file=self.tmp_path / "seen_guids.json",
+            log_file_path=self.tmp_path / "idle_worker.log",
+            verbose=False,
+        )
         self.worker = IdleComputeWorker(self.config)
+
+    def tearDown(self) -> None:
+        self._tmp_dir.cleanup()
 
     def test_weighted_schedule_distribution(self) -> None:
         cats = [self.worker.next_category() for _ in range(20)]
@@ -73,7 +85,12 @@ class TestIdleComputeWorker(unittest.TestCase):
         self.assertIn("Detailed benchmark description.", items[0]["summary"])
 
     def test_execute_snowgate_turn_offline(self) -> None:
-        config = IdleWorkerConfig(enable_live_rss=False)
+        config = IdleWorkerConfig(
+            enable_live_rss=False,
+            seen_guids_file=self.tmp_path / "offline_guids.json",
+            log_file_path=self.tmp_path / "offline.log",
+            verbose=False,
+        )
         worker = IdleComputeWorker(config)
         res = worker.execute_snowgate_turn()
 
@@ -89,7 +106,14 @@ class TestIdleComputeWorker(unittest.TestCase):
         ]
         with tempfile.TemporaryDirectory() as td:
             guids_path = Path(td) / "seen_guids.json"
-            config = IdleWorkerConfig(seen_guids_file=guids_path, enable_live_rss=True, rss_feeds=["http://mock.feed"])
+            log_path = Path(td) / "rss_test.log"
+            config = IdleWorkerConfig(
+                seen_guids_file=guids_path,
+                log_file_path=log_path,
+                enable_live_rss=True,
+                rss_feeds=["http://mock.feed"],
+                verbose=False,
+            )
             worker = IdleComputeWorker(config)
 
             with patch("tankbench.idle_worker.fetch_live_rss", return_value=list(mock_items)):
@@ -144,7 +168,14 @@ class TestIdleComputeWorker(unittest.TestCase):
     def test_priority_interruption_flag(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             flag_file = Path(td) / "PRIORITY_INTERRUPT"
-            config = IdleWorkerConfig(priority_flag_file=flag_file, sample_interval_s=0.0)
+            log_file = Path(td) / "interrupt.log"
+            config = IdleWorkerConfig(
+                priority_flag_file=flag_file,
+                log_file_path=log_file,
+                seen_guids_file=Path(td) / "guids.json",
+                sample_interval_s=0.0,
+                verbose=False,
+            )
             worker = IdleComputeWorker(config)
 
             self.assertFalse(worker.is_priority_interrupted())
@@ -165,7 +196,13 @@ class TestIdleComputeWorker(unittest.TestCase):
             self.assertGreater(self.worker.current_backoff, init_backoff)
 
     def test_worker_run_cycles(self) -> None:
-        config = IdleWorkerConfig(max_cycles=10, sample_interval_s=0.0)
+        config = IdleWorkerConfig(
+            max_cycles=10,
+            sample_interval_s=0.0,
+            log_file_path=self.tmp_path / "cycles.log",
+            seen_guids_file=self.tmp_path / "cycles_guids.json",
+            verbose=False,
+        )
         worker = IdleComputeWorker(config)
         results = worker.run()
         self.assertEqual(len(results), 10)
@@ -177,8 +214,18 @@ class TestIdleComputeWorker(unittest.TestCase):
         self.assertEqual(categories.count(WorkCategory.TANKBENCH_VERIFY), 1)
 
     def test_run_worker_cli_entrypoint(self) -> None:
-        code = run_worker_cli(max_cycles=2, as_json=True)
+        log_file = self.tmp_path / "cli.log"
+        code = run_worker_cli(max_cycles=2, as_json=True, log_file_path=log_file)
         self.assertEqual(code, 0)
+        self.assertTrue(log_file.exists())
+
+    def test_default_work_dir_closes_sqlite_probe(self) -> None:
+        from tankbench.harness import default_work_dir, repo_root
+
+        wd = default_work_dir()
+        self.assertTrue(wd.exists())
+        probe_db = repo_root() / ".work" / ".probe_lock.db"
+        self.assertFalse(probe_db.exists(), "Probe database must be unlinked cleanly after closing connection")
 
 
 if __name__ == "__main__":
