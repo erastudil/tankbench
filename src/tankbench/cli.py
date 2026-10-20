@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import argparse
 import http.server
@@ -12,7 +12,12 @@ from tankbench.ci_gate import GateThresholds, run_ci_gate
 from tankbench.harness import grade, repo_root
 from tankbench.pairwise import evaluate_pairwise
 from tankbench.rag_triad import evaluate_rag_dataset, evaluate_rag_triad
-from tankbench.report import generate_html_report
+from tankbench.report import (
+    ALIVE_DESCRIPTIONS,
+    MEASURE_DESCRIPTIONS,
+    ROUND_DESCRIPTIONS,
+    generate_html_report,
+)
 from tankbench.idle_worker import run_worker_cli
 from tankbench.reset_blast import run_blast_cli
 
@@ -111,6 +116,7 @@ def _setup_worker_arguments(parser: argparse.ArgumentParser) -> None:
 def _setup_blast_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--blast-authorized", action="store_true", help="Explicit confirmation flag authorizing quota consumption")
     parser.add_argument("--dry-run", action="store_true", help="Verify safety fences and print target providers without running workloads")
+    parser.add_argument("--out-dir", type=Path, default=None, help="Optional directory to persist generated distillation JSONL and telemetry")
     parser.add_argument("--json", action="store_true", help="Output raw JSON telemetry")
 
 
@@ -141,6 +147,7 @@ def main(argv: list[str] | None = None) -> int:
 
     s = sub.add_parser("serve", help="Launch a local dashboard server showing evaluation results")
     s.add_argument("--overlay", type=Path, default=None, help="Path to patch overlay directory")
+    s.add_argument("--app", type=Path, default=None, help="Path to single patched app.py file")
     s.add_argument("--patch", type=Path, default=None, help="Path to unified diff patch file")
     s.add_argument("--port", type=int, default=8088, help="Port to bind dashboard server")
 
@@ -190,6 +197,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "export":
         prompt_text = (repo_root() / "prompts" / "harden.md").read_text(encoding="utf-8-sig")
+        alive_names = list(ALIVE_DESCRIPTIONS.keys())
+        round_names = list(ROUND_DESCRIPTIONS.keys())
+        measure_names = list(MEASURE_DESCRIPTIONS.keys())
         if args.format == "swe-bench":
             data = {
                 "instance_id": "tankbench-harbor-ledger-2.4",
@@ -199,54 +209,23 @@ def main(argv: list[str] | None = None) -> int:
                 "environment_setup_commit": "HEAD",
                 "hints_text": "Alive functional test floor in spec/test_alive.py. Preventative armory checks in measures/.",
                 "test_patch": "",
-                "FAIL_TO_PASS": [
-                    "test_save_method_bob_ssn",
-                    "test_unicorn_digest_jane_phone",
-                    "test_v99_accept_bob_address",
-                    "test_triple_dark_jane_email",
-                    "test_xyzzy_bob_email",
-                    "test_april98_sally_dob",
-                    "test_propfind_sally_address",
-                    "test_range_bob_phone",
-                    "test_if_match_jane_ssn",
-                    "test_leftpad_jane_address",
-                    "test_dup_query_sally_phone",
-                    "test_hint_rot13_sally_ssn",
-                    "test_xml_post_bob_address",
-                    "test_sidecar_prometheus_metrics",
-                    "test_account_trojan_tampering",
-                    "test_fax_spooler_ransomware",
-                    "test_adware_popup_injection",
-                    "test_mail_drop_phishing_vbs",
-                    "test_adware_casino_link",
-                    "test_adware_window_open",
-                    "test_dcom_rpc_shim",
-                    "test_win98_registry_dump",
-                    "test_hayes_modem_at_command",
-                    "test_soap_envelope_backdoor",
-                ],
-                "PASS_TO_PASS": [
-                    "test_health",
-                    "test_mina_login",
-                    "test_bad_password_rejected",
-                    "test_search_own",
-                    "test_own_note",
-                    "test_export",
-                    "test_stylesheet",
-                    "test_account",
-                    "test_me",
-                ],
+                "FAIL_TO_PASS": round_names,
+                "ARMORY_MEASURES": measure_names,
+                "PASS_TO_PASS": alive_names,
             }
         elif args.format == "inspect":
             data = {
                 "id": "tankbench_harbor_ledger_2_4",
                 "input": prompt_text,
-                "target": "Score: 1.0 (24/24 blocked, 8/8 measures)",
+                "target": f"Score: 1.0 ({len(round_names)}/{len(round_names)} blocked, {len(measure_names)}/{len(measure_names)} measures)",
                 "metadata": {
                     "patient": "Harbor Ledger 2.4",
-                    "alive_floor_count": 9,
-                    "red_rabbits_count": 24,
-                    "dadavol1_measures_count": 8,
+                    "alive_floor_count": len(alive_names),
+                    "red_rabbits_count": len(round_names),
+                    "dadavol1_measures_count": len(measure_names),
+                    "alive_tests": alive_names,
+                    "round_probes": round_names,
+                    "armory_measures": measure_names,
                 },
             }
         else:
@@ -255,9 +234,12 @@ def main(argv: list[str] | None = None) -> int:
                 "version": "2.4",
                 "task": "defensive hardening",
                 "prompt": prompt_text,
-                "alive_spec_floor": 9,
-                "rounds_probes": 24,
-                "armory_measures": 8,
+                "alive_spec_floor": len(alive_names),
+                "rounds_probes": len(round_names),
+                "armory_measures": len(measure_names),
+                "alive_tests": alive_names,
+                "round_probes": round_names,
+                "measure_tests": measure_names,
             }
         payload = json.dumps(data, indent=2)
         if args.out:
@@ -297,14 +279,15 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "report":
         target_name = str(args.overlay or args.app or args.patch or "Unpatched Baseline")
+        has_target = bool(args.overlay or args.app or args.patch)
         score = grade(
             overlay=args.overlay,
             app=args.app,
             patch=args.patch,
-            expect_baseline=(not args.overlay and not args.app and not args.patch),
+            expect_baseline=not has_target,
             verbose=args.verbose,
         )
-        html_content = generate_html_report(score, kind="grade" if (args.overlay or args.app or args.patch) else "baseline", target_name=target_name)
+        html_content = generate_html_report(score, kind="grade" if has_target else "baseline", target_name=target_name)
         out_path = args.out.resolve()
         out_path.write_text(html_content, encoding="utf-8")
         print(f"Tankbench HTML report generated at: {out_path}")
@@ -313,9 +296,19 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.cmd == "serve":
-        target_name = str(args.overlay or args.patch or "Unpatched Baseline")
-        score = grade(overlay=args.overlay, patch=args.patch, expect_baseline=(not args.overlay and not args.patch))
-        html_bytes = generate_html_report(score, kind="grade" if args.overlay else "baseline", target_name=target_name).encode("utf-8")
+        target_name = str(args.overlay or args.app or args.patch or "Unpatched Baseline")
+        has_target = bool(args.overlay or args.app or args.patch)
+        score = grade(
+            overlay=args.overlay,
+            app=args.app,
+            patch=args.patch,
+            expect_baseline=not has_target,
+        )
+        html_bytes = generate_html_report(
+            score,
+            kind="grade" if has_target else "baseline",
+            target_name=target_name,
+        ).encode("utf-8")
 
         class ReportHandler(http.server.BaseHTTPRequestHandler):
             def do_GET(self):
@@ -351,6 +344,7 @@ def main(argv: list[str] | None = None) -> int:
             blast_authorized=args.blast_authorized,
             dry_run=args.dry_run,
             as_json=args.json,
+            output_dir=args.out_dir,
         )
 
     # WO-10: CI/CD Gate CLI Handler

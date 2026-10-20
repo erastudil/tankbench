@@ -1,4 +1,4 @@
-﻿import io
+import io
 import json
 import sys
 import unittest
@@ -54,6 +54,21 @@ class TestCIEvaluationGate(unittest.TestCase):
         self.assertEqual(decision.deployment_action, "TRIGGER_ROLLBACK")
         self.assertGreater(len(decision.failure_reasons), 0)
 
+    def test_gate_assertion_regression_drop_against_baseline(self):
+        gate = CIEvaluationGate(thresholds=GateThresholds(min_assertion_score=0.50, max_score_drop=0.10))
+        baseline = [
+            {"id": "1", "response": "ok", "expected_output": "ok"},
+            {"id": "2", "response": "ok", "expected_output": "ok"},
+        ]
+        candidate = [
+            {"id": "1", "response": "ok", "expected_output": "ok"},
+            {"id": "2", "response": "bad", "expected_output": "ok"},
+        ]
+        decision = gate.evaluate(candidate_data=candidate, baseline_data=baseline)
+        self.assertFalse(decision.passed)
+        self.assertAlmostEqual(decision.score_drop, 0.5)
+        self.assertTrue(any("Assertion score regression drop" in r for r in decision.failure_reasons))
+
     def test_gate_candidate_hallucinating(self):
         gate = CIEvaluationGate()
         cand = self.fixtures / "candidate_hallucinating.json"
@@ -93,6 +108,27 @@ class TestCIEvaluationGate(unittest.TestCase):
         self.assertEqual(parsed["status"], "PASSED")
         self.assertEqual(parsed["deployment_action"], "PROCEED_CANARY_DEPLOYMENT")
         self.assertIn("metrics", parsed)
+
+    def test_export_swe_bench_matches_live_test_suites(self):
+        root = Path(__file__).resolve().parents[1]
+        if str(root) not in sys.path:
+            sys.path.insert(0, str(root))
+        from measures.test_measures import Dadavol1Measures
+        from rounds.test_rounds import Rounds
+        from spec.test_alive import Alive
+
+        expected_alive = {m for m in dir(Alive) if m.startswith("test_")}
+        expected_rounds = {m for m in dir(Rounds) if m.startswith("test_")}
+        expected_measures = {m for m in dir(Dadavol1Measures) if m.startswith("test_")}
+
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            ret = main(["export", "--format", "swe-bench"])
+        self.assertEqual(ret, 0)
+        payload = json.loads(buf.getvalue())
+        self.assertEqual(set(payload["PASS_TO_PASS"]), expected_alive)
+        self.assertEqual(set(payload["FAIL_TO_PASS"]), expected_rounds)
+        self.assertEqual(set(payload["ARMORY_MEASURES"]), expected_measures)
 
 
 if __name__ == "__main__":
