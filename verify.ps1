@@ -1,6 +1,7 @@
 $ErrorActionPreference = "Stop"
 Push-Location $PSScriptRoot
 try {
+    $env:PYTHONPATH = "src"
     Write-Host "==> Running Tankbench Baseline..."
     python run.py baseline
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

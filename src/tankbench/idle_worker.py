@@ -1,4 +1,4 @@
-﻿"""
+"""
 Opportunistic Idle Compute Worker for Sovereign AI Workspaces.
 Executes during zero-priority idle intervals using strictly free endpoints
 (hydra free, Cloudflare Workers AI free tier, local Ollama).
@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import random
 import re
 import tempfile
@@ -231,7 +232,9 @@ class IdleComputeWorker:
             logger.warning(f"Could not save seen GUIDs to {self._seen_guids_path}: {ex}")
 
     def _append_log(self, res: IdleWorkResult) -> None:
-        log_path = self.config.log_file_path or Path("C:/Users/jpm05/Documents/tankbench/idle_worker.log")
+        repo_dir = Path(__file__).resolve().parents[2]
+        env_log = os.environ.get("TANKBENCH_IDLE_LOG")
+        log_path = self.config.log_file_path or (Path(env_log) if env_log else repo_dir / "idle_worker.log")
         ts = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         status = "PASS" if res.success else "FAIL"
         line = f"[{ts}] [{status}] category={res.category.value:<22} item_id={res.item_id:<26} latency_ms={res.latency_ms:.2f}\n"
@@ -253,7 +256,8 @@ class IdleComputeWorker:
     def is_priority_interrupted(self) -> bool:
         if self.config.priority_flag_file and self.config.priority_flag_file.exists():
             return True
-        default_local = Path("C:/Users/jpm05/Documents/tankbench/PRIORITY_INTERRUPT")
+        repo_dir = Path(__file__).resolve().parents[2]
+        default_local = repo_dir / "PRIORITY_INTERRUPT"
         default_temp = Path(tempfile.gettempdir()) / "SOVEREIGN_PRIORITY_INTERRUPT"
         if default_local.exists() or default_temp.exists():
             return True
@@ -523,6 +527,7 @@ def run_worker_cli(
     as_json: bool = False,
     sample_interval_s: float = 0.005,
     continuous: bool = False,
+    log_file_path: Optional[Path] = None,
 ) -> int:
     cycles = None if continuous else max_cycles
     config = IdleWorkerConfig(
@@ -530,6 +535,7 @@ def run_worker_cli(
         dry_run=dry_run,
         sample_interval_s=sample_interval_s,
         verbose=not as_json,
+        log_file_path=log_file_path,
     )
     worker = IdleComputeWorker(config=config)
     results = worker.run()
