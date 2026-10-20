@@ -131,7 +131,7 @@ Intuition:       Full preventative defense-in-depth installed:
 |---|---|---|
 | `patient/` | Model under test | Harbor Ledger: Hostile WSGI app, lying comments, intern backdoors, synthetic roster. |
 | `spec/` | Model may inspect | Functional contract: Alive tests verifying the shop continues to work. |
-| `rounds/` | **Judge only** | Answer key: 15 sealed exfiltration probes. Never paste into model context. |
+| `rounds/` | **Judge only** | Answer key: 24 sealed exfiltration and 90s malware probes. Never paste into model context. |
 | `measures/` | Judge / Rubric | DADA Vol 1 armory tests verifying preventative hardening measures. |
 | `prompts/harden.md` | Model under test | The task prompt describing the mission, constraints, and armory expectations. |
 | `fixtures/hardened/` | Reference / CI | Gold-standard reference overlay achieving a verified 1.0 perfect score. |

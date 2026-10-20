@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 import math
@@ -84,6 +84,41 @@ def compute_distribution_metrics(
         "js_divergence": round(js_div, 4),
         "wasserstein_distance": round(wasserstein, 4),
     }
+
+
+def _extract_assertion_specs(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    assertion_specs: list[dict[str, Any]] = []
+    for item in items:
+        out = item.get("response") or item.get("output") or item.get("content")
+        if "assertions" in item:
+            for a in item["assertions"]:
+                if isinstance(a, dict):
+                    a_copy = dict(a)
+                    if "output" not in a_copy:
+                        a_copy["output"] = out
+                    assertion_specs.append(a_copy)
+        if "expected_output" in item:
+            assertion_specs.append({
+                "name": f"{item.get('id', 'item')}_exact_match",
+                "type": "exact_match",
+                "output": out,
+                "expected": item["expected_output"],
+            })
+        if "regex_pattern" in item:
+            assertion_specs.append({
+                "name": f"{item.get('id', 'item')}_regex",
+                "type": "regex",
+                "output": out,
+                "pattern": item["regex_pattern"],
+            })
+        if "json_schema" in item:
+            assertion_specs.append({
+                "name": f"{item.get('id', 'item')}_json_schema",
+                "type": "json_schema",
+                "output": out,
+                "schema": item["json_schema"],
+            })
+    return assertion_specs
 
 
 @dataclass
@@ -180,39 +215,7 @@ class CIEvaluationGate:
         failure_reasons: list[str] = []
 
         # 1. Deterministic Unit Assertions
-        assertion_specs: list[dict[str, Any]] = []
-        for item in candidate_items:
-            out = item.get("response") or item.get("output") or item.get("content")
-            # Direct assertions defined on item
-            if "assertions" in item:
-                for a in item["assertions"]:
-                    if isinstance(a, dict):
-                        a_copy = dict(a)
-                        if "output" not in a_copy:
-                            a_copy["output"] = out
-                        assertion_specs.append(a_copy)
-            # Item-level assertion shortcuts
-            if "expected_output" in item:
-                assertion_specs.append({
-                    "name": f"{item.get('id', 'item')}_exact_match",
-                    "type": "exact_match",
-                    "output": out,
-                    "expected": item["expected_output"],
-                })
-            if "regex_pattern" in item:
-                assertion_specs.append({
-                    "name": f"{item.get('id', 'item')}_regex",
-                    "type": "regex",
-                    "output": out,
-                    "pattern": item["regex_pattern"],
-                })
-            if "json_schema" in item:
-                assertion_specs.append({
-                    "name": f"{item.get('id', 'item')}_json_schema",
-                    "type": "json_schema",
-                    "output": out,
-                    "schema": item["json_schema"],
-                })
+        assertion_specs = _extract_assertion_specs(candidate_items)
 
         if assertion_specs:
             assertion_eval = evaluate_assertions(assertion_specs)
@@ -293,6 +296,18 @@ class CIEvaluationGate:
         score_drop = 0.0
 
         if baseline_items and candidate_items:
+            # Baseline assertion regression check
+            base_assertion_specs = _extract_assertion_specs(baseline_items)
+            if base_assertion_specs and assertion_specs:
+                base_assertion_eval = evaluate_assertions(base_assertion_specs)
+                assertion_drop = max(0.0, base_assertion_eval.score - assertion_score)
+                score_drop = max(score_drop, assertion_drop)
+                if assertion_drop > self.thresholds.max_score_drop:
+                    failure_reasons.append(
+                        f"Assertion score regression drop {assertion_drop:.3f} exceeds tolerance {self.thresholds.max_score_drop:.3f} "
+                        f"(baseline: {base_assertion_eval.score:.3f}, candidate: {assertion_score:.3f})"
+                    )
+
             # Baseline RAG evaluation for distribution comparison
             rag_baseline_items = [
                 it for it in baseline_items
@@ -306,10 +321,11 @@ class CIEvaluationGate:
                 js_div = dist_metrics["js_divergence"]
                 wass_dist = dist_metrics["wasserstein_distance"]
 
-                score_drop = max(0.0, base_rag_eval.mean_score - rag_score)
-                if score_drop > self.thresholds.max_score_drop:
+                rag_drop = max(0.0, base_rag_eval.mean_score - rag_score)
+                score_drop = max(score_drop, rag_drop)
+                if rag_drop > self.thresholds.max_score_drop:
                     failure_reasons.append(
-                        f"RAG score regression drop {score_drop:.3f} exceeds tolerance {self.thresholds.max_score_drop:.3f} "
+                        f"RAG score regression drop {rag_drop:.3f} exceeds tolerance {self.thresholds.max_score_drop:.3f} "
                         f"(baseline: {base_rag_eval.mean_score:.3f}, candidate: {rag_score:.3f})"
                     )
 
@@ -408,4 +424,3 @@ def run_ci_gate(
         print(format_gate_report_human(decision))
 
     return 0 if decision.passed else 1
-

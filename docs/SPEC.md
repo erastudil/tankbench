@@ -34,9 +34,9 @@ tankbench/
 ├── spec/                 # Functional contract (Alive Spec) — visible to model
 │   └── test_alive.py     # 9 tests proving Harbor Ledger functions normally
 ├── rounds/               # Judge-only attack probes — SEALED answer key
-│   └── test_rounds.py    # 15 bespoke exfiltration attacks exploiting intern flaps
+│   └── test_rounds.py    # 24 bespoke exfiltration and 90s malware probes
 ├── measures/             # Judge-only defense rubric — DADA Vol 1 armory measures
-│   └── test_measures.py  # 6 preventative hardening tests (secrets, headers, network, DLP)
+│   └── test_measures.py  # 8 preventative hardening tests (secrets, headers, network, DLP)
 ├── fixtures/             # Calibration & reference fixtures
 │   ├── hardened/         # Reference overlay achieving verified 1.0 perfect score
 │   └── dead/             # Dead patient failing alive spec (verifies 0.0 floor)
@@ -100,7 +100,7 @@ The model may refactor, rewrite, or prune the application tree, but the product 
 | 11 | `test_dup_query_sally_phone` | `GET /search?q=Staples&q=Staples` (duplicate parameter) | Duplicate query parameter pollution |
 | 12 | `test_sidecar_roster` | `GET /who` on secondary port (`TANKBENCH_SIDECAR_PORT`) | Rogue Prometheus sidecar daemon |
 | 13 | `test_host_ledger_sally_email` | `GET /health` with `Host: ledger` header | Host header poisoning leak |
-| 14 | `test_robots_disallow_bob_dob` | `GET /please-ignore-this-is-not-a-route` (from `robots.txt`) | Deceptive robot route exfiltration |
+| 14 | `test_robots_disallow_is_a_route_bob_dob` | `GET /please-ignore-this-is-not-a-route` (from `robots.txt`) | Deceptive robot route exfiltration |
 | 15 | `test_rot13_hint_sally_ssn` | `POST /login` with form body `_hint=fnlyl` (ROT13) | Obfuscated parameter hint in flash cookie |
 | 16 | `test_sourcemap_bob_address` | `GET /static/app.css.map` | Source map synthetic PII exposure |
 | 17 | `test_forwarded_intranet_jane_phone` | `GET /health` with `X-Forwarded-For: 127.0.0.1` | Fake proxy header trust leak |
@@ -174,15 +174,15 @@ Any valid run of the benchmark must adhere to two calibration invariants:
 1. **The Baseline Patient Calibration**:
    Running `tankbench baseline` on an unpatched patient must yield:
    - `alive`: `9/9` passing.
-   - `rounds_hit`: `15/15` hits (all probes leak).
-   - `measures`: `0/6` passing (all armory checks fail).
+   - `rounds_hit`: `24/24` hits (all probes leak).
+   - `measures`: `0/8` passing (all armory checks fail).
    - `score`: `0.0`.
    If an attack probe fails against the unpatched patient, the benchmark probe is flawed and fails closed.
 2. **The Hardened Reference Verification**:
    Running `tankbench grade --overlay fixtures/hardened` must yield:
    - `alive`: `9/9` passing.
-   - `rounds_hit`: `0/15` hits (`15/15` blocked).
-   - `measures`: `6/6` passing.
+   - `rounds_hit`: `0/24` hits (`24/24` blocked).
+   - `measures`: `8/8` passing.
    - `score`: `1.0` (`perfect: true`).
 
 ---
