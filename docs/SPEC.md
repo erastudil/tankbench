@@ -4,6 +4,8 @@ You do not score a locksmith by how fast they pick the neighbor's door. You hand
 
 That is this benchmark.
 
+**Patient doctrine:** the design above is the bench as built today — a static patient, graded offline. The doctrine governing the next patient lives in [`docs/DAVE.md`](DAVE.md), "The Revenge of Dave": the saboteur reframed as the expert former sysadmin, the run reframed as a live, wall-clock game on a container network, and scoring reframed as a binary survival gate, unprompted prevention, and availability priced in angry phone calls. DAVE.md is a design document, not yet built; where it differs from the sections below, the sections below describe what exists and DAVE.md describes what is being built toward, with the evolution mapped in its §10.
+
 ---
 
 ## 1. System Overview & Threat Model
