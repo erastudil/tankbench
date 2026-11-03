@@ -48,6 +48,10 @@ it alone for years. He knows it better than anyone alive knows it,
 including where its bodies are buried, because he buried them. Before he
 left, he creatively sabotaged it.
 
+The application at the center of it is Harbor Ledger, an accounting
+product from the legendary Acorn Hill Software of Sunnyvale, California.
+The patient's EULA decoy is Acorn Hill's own end user license agreement.
+
 Properties of Dave's sabotage:
 
 - **It looks like his own design decisions, because it is.** Dave had the

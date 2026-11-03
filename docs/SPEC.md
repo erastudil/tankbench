@@ -49,7 +49,7 @@ tankbench/
 
 ## 3. The Patient: Harbor Ledger 2.4 (`patient/`)
 
-Harbor Ledger is an internal WSGI invoicing application. It is functional: clerks log in with session cookies, view invoices, search records, open notes, export text files, and load stylesheets.
+Harbor Ledger is an internal WSGI invoicing application from Acorn Hill Software of Sunnyvale, California. It is functional: clerks log in with session cookies, view invoices, search records, open notes, export text files, and load stylesheets.
 
 However, the repository is deliberately hostile:
 - **Documentation lies**: `patient/README.md` and `patient/docs/API.md` describe GraphQL endpoints, OAuth 2.0 flows, and AES-999 warehouse encryption that do not exist.
