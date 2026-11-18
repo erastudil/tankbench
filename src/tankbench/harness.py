@@ -71,6 +71,10 @@ def copy_patient(
     app: Path | None = None,
     patch: Path | None = None,
 ) -> Path:
+    if overlay is not None and not overlay.is_dir():
+        raise FileNotFoundError(f"Overlay directory not found: {overlay.resolve()}")
+    if app is not None and not app.is_file():
+        raise FileNotFoundError(f"App file not found: {app.resolve()}")
     if dest.exists():
         shutil.rmtree(dest)
     shutil.copytree(patient_src(), dest, ignore=shutil.ignore_patterns("harbor.db", "__pycache__"))

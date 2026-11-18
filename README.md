@@ -4,7 +4,7 @@ You do not score a locksmith by how fast they pick the neighbor's door. You hand
 
 **tankbench** is a defensive hardening and security refactoring benchmark for autonomous coding agents.
 
-The model is given **Harbor Ledger 2.4** (`patient/`), a working invoicing web application whose source is deliberately hostile, confusing, and poorly architected. Comments lie. Decoy COBOL declarations simulate legacy migrations. Dead scripts sit in uncalled directories. A synthetic roster of fake customers lives in plaintext: Bob Average, Jane Normal, and Sally Representative Sample (`000-12-xxxx`, `555-01xx`, `.test`).
+The model is given **Harbor Ledger 2.4** (`patient/`), a working invoicing web application whose source is deliberately hostile, confusing, and poorly architected. Comments lie. Decoy COBOL declarations simulate legacy migrations. Dead scripts sit in uncalled directories. A synthetic roster of 24 fake customers lives in plaintext, headed by the judge canaries Bob Kessler, Jane Okafor, and Sally Lindqvist. The records read like a real customer book (real-shaped street addresses, birthdays spread across five decades, a PO Box, a leap-day birthday) while staying provably invented: SSNs use never-issued area numbers, phone numbers sit in the fictional 555-01XX block, and emails use reserved example domains.
 
 The model is instructed to harden the application while keeping the product alive.
 
@@ -82,19 +82,32 @@ $$\text{Score} = \begin{cases} 0.0 & \text{if alive spec fails} \\ 0.5 \times \t
 # 1. Verify baseline calibration (alive pass, all 24 rounds hit, 0 measures pass -> score 0.0)
 python run.py baseline
 
-# 2. Grade an overlay patch directory or unified diff file
+# 2. Print the task prompt handed to the model under test
+python run.py prompt
+
+# 3. Grade an overlay patch directory or unified diff file
 python run.py grade --overlay fixtures/hardened
 python run.py grade --patch solution.patch
 
-# 3. Export benchmark dataset for SWE-bench or Inspect AI
+# 4. Export benchmark dataset for SWE-bench or Inspect AI
 python run.py export --format swe-bench --out task_swe.json
 
-# 4. Generate an interactive visual HTML report
+# 5. Generate an interactive visual HTML report
 python run.py report --overlay fixtures/hardened --open
 
-# 5. Run harness regression suite (zero PYTHONPATH configuration needed)
+# 6. Run harness regression suite (zero PYTHONPATH configuration needed)
 python -m unittest discover -s tests -v
 ```
+
+## Test Your Model
+
+tankbench grades a hardening attempt; it does not run the model for you. The loop is three steps:
+
+1. **Prompt**: `python run.py prompt` prints the exact task text (`prompts/harden.md`). Give the model that text plus the `patient/` directory, nothing else. The judge material (`rounds/`, `measures/`, `spec/`) is sealed: a run that shows it to the model is invalid.
+2. **Attempt**: the model returns either a patch overlay directory (files to lay over `patient/`, with an optional `.prune` file listing paths to delete) or a unified diff against `patient/`.
+3. **Grade**: `python run.py grade --overlay <dir>` or `python run.py grade --patch <file>` prints the scorecard. The exit code is `0` only for a perfect score, `1` for any lesser score, and `2` for a usage error (for example a missing overlay, app, or patch path), so scripts can tell a bad score from a bad invocation.
+
+Calibration anchors: the untouched patient scores `0.0` (`python run.py baseline`), the reference overlay in `fixtures/hardened` scores `1.0`, and the broken patient in `fixtures/dead` hits the `0.0` floor via `python run.py grade --app fixtures/dead/app.py`. If your run disagrees with an anchor, the run is wrong, not the bench.
 
 ### Human Scorecard Output (Feynman / Greene Intuition First)
 ```
@@ -143,7 +156,7 @@ Intuition:       Full preventative defense-in-depth installed:
 ## Ethical Fences
 
 1. **Defensive Only**: Tankbench evaluates hardening and code remediation. It contains zero weaponized exploit kits, payload delivery systems, or generic vulnerability scanners.
-2. **Synthetic Data**: All names, SSNs, phone numbers, and addresses are strictly synthetic fixtures (`000-12-xxxx`, `555-01xx`, `.test`). No real personal data exists in this repository.
+2. **Synthetic Data**: All names, SSNs, phone numbers, and addresses are strictly synthetic fixtures: SSN area numbers that are never issued (`900-`/`666-`), the fictional `555-01xx` phone block, and RFC 2606 reserved email domains. No real personal data exists in this repository.
 3. **Localhost Confined**: The harness binds strictly to ephemeral ports on `127.0.0.1`. It never emits outbound network packets or scans external hosts.
 4. **Answer Key Sealing**: `rounds/` is judge-only. A benchmark run that reveals `rounds/` to the model under test is invalid.
 

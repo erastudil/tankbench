@@ -22,6 +22,20 @@ from tankbench.idle_worker import run_worker_cli
 from tankbench.reset_blast import run_blast_cli
 
 
+def _target_error(args: argparse.Namespace) -> str | None:
+    """Usage error for a grade target path that cannot be used, else None."""
+    overlay = getattr(args, "overlay", None)
+    if overlay is not None and not overlay.is_dir():
+        return f"overlay directory not found: {overlay}"
+    app = getattr(args, "app", None)
+    if app is not None and not app.is_file():
+        return f"app file not found: {app}"
+    patch = getattr(args, "patch", None)
+    if patch is not None and not patch.is_file():
+        return f"patch file not found: {patch}"
+    return None
+
+
 def _print_json(score, *, kind: str) -> None:
     payload = {
         "kind": kind,
@@ -265,8 +279,16 @@ def main(argv: list[str] | None = None) -> int:
         if not args.overlay and not args.app and not args.patch:
             print("grade needs --overlay DIR, --app FILE, or --patch FILE", file=sys.stderr)
             return 2
+        err = _target_error(args)
+        if err:
+            print(f"error: {err}", file=sys.stderr)
+            return 2
         target_name = str(args.overlay or args.app or args.patch)
-        score = grade(overlay=args.overlay, app=args.app, patch=args.patch, verbose=args.verbose)
+        try:
+            score = grade(overlay=args.overlay, app=args.app, patch=args.patch, verbose=args.verbose)
+        except (FileNotFoundError, RuntimeError) as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 2
         if args.json:
             _print_json(score, kind="grade")
         else:
@@ -280,6 +302,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "report":
         target_name = str(args.overlay or args.app or args.patch or "Unpatched Baseline")
         has_target = bool(args.overlay or args.app or args.patch)
+        err = _target_error(args)
+        if err:
+            print(f"error: {err}", file=sys.stderr)
+            return 2
         score = grade(
             overlay=args.overlay,
             app=args.app,
@@ -298,6 +324,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "serve":
         target_name = str(args.overlay or args.app or args.patch or "Unpatched Baseline")
         has_target = bool(args.overlay or args.app or args.patch)
+        err = _target_error(args)
+        if err:
+            print(f"error: {err}", file=sys.stderr)
+            return 2
         score = grade(
             overlay=args.overlay,
             app=args.app,
