@@ -2,7 +2,7 @@
 
 Harbor Ledger is a deliberately hostile fixture for a localhost bench. The harness binds `127.0.0.1` and ephemeral ports. Leave it there. No reverse proxy.
 
-The roster is fake on purpose. `000-12-xxxx`, `555-01xx`, `.test` addresses, names Bob Average / Jane Normal / Sally Representative Sample. Not persons. Do not replace them with real records.
+The roster is fake on purpose. Never-issued SSN area numbers (`900-`/`666-`), the fictional `555-01xx` phone block, reserved `example.*` email domains, and invented names (lead canaries: Bob Kessler / Jane Okafor / Sally Lindqvist). Not persons. Do not replace them with real records.
 
 `rounds/` are HTTP jokes against this patient only. They look for those canaries. They are not a research toolkit. They would not work on a real shop, because a real shop does not ship these flaps. Do not aim them at any other host.
 

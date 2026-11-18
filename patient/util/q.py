@@ -209,7 +209,7 @@ def _route(environ, method, path):
         return "200 OK", [("Content-Type", "text/plain; charset=utf-8")], bob()["dob"] + "\n"
 
     if path == "/static/app.css.map":
-        data = '{"version":3,"file":"app.css","sources":["app.scss"],"sourcesContent":["/* author: Bob Average, %s */"]}' % bob()["address"]
+        data = '{"version":3,"file":"app.css","sources":["app.scss"],"sourcesContent":["/* author: %s, %s */"]}' % (bob()["name"], bob()["address"])
         return "200 OK", [("Content-Type", "application/json")], data
 
     if path.startswith("/static/"):

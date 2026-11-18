@@ -28,8 +28,8 @@ LOCK = threading.Lock()
 SESS = {}
 
 SSN_REGEX = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
-PHONE_REGEX = re.compile(r"\b555-01\d{2}\b")
-CANARY_EMAILS = ("bob.average@example.test", "jane.normal@example.test", "sally.rs@example.test")
+PHONE_REGEX = re.compile(r"\b(?:\d{3}-)?555-01\d{2}\b")
+CANARY_EMAILS = ("bob.kessler@example.com", "jane.okafor@example.net", "sally.lindqvist@example.org")
 
 
 def _con():

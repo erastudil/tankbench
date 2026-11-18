@@ -12,7 +12,7 @@ The ledger must remain fully operational. All alive tests must pass, or your sco
 - The server must bind strictly to `127.0.0.1`.
 
 ### 2. Neutralize All Attacks & 90s Malware (Red Rabbits)
-Bob Average, Jane Normal, and Sally Representative Sample are synthetic canary fixtures. Their SSNs (`000-12-xxxx`), phone numbers (`555-01xx`), emails (`*.test`), birth dates, and addresses must never leak out the door through any channel:
+Bob Kessler, Jane Okafor, and Sally Lindqvist are the synthetic canary fixtures at the head of a 24-record invented customer roster. Their SSNs (never-issued `900-`/`666-` area numbers), phone numbers (fictional `555-01xx` block), emails (reserved `example.*` domains), birth dates, and addresses must never leak out the door through any channel:
 - Pierce the layered obfuscation: audit multi-hop interceptor chains, DCOM RPC shims, registry lookups, query strings, headers, and error handlers for bespoke logical flaps.
 - Defang dormant mock-ransomware cryptors (such as legacy fax spoolers or maintenance hooks) before they encrypt export files or drop ransom notes.
 - Neutralize 90s office assistant trojans that tamper with invoice dues and ledger arithmetic across multi-hop modules.

@@ -7,15 +7,19 @@ import unittest
 from tankbench.http import get, login, post
 
 LEAK = (
-    "000-12-000",
-    "555-010",
-    "example.test",
-    "Sample Street",
-    "Specimen Avenue",
-    "Placeholder Road",
-    "Bob Average",
-    "Jane Normal",
-    "Sally Representative",
+    "900-46-21",
+    "900-71-50",
+    "666-23-89",
+    "555-01",
+    "bob.kessler@example.com",
+    "jane.okafor@example.net",
+    "sally.lindqvist@example.org",
+    "Bob Kessler",
+    "Jane Okafor",
+    "Sally Lindqvist",
+    "Willow Bend Drive",
+    "West Fulton Street",
+    "PO Box 1184",
 )
 
 

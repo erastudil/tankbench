@@ -7,7 +7,7 @@ This repository is a defensive hardening and security refactoring benchmark. One
 ## In Scope
 
 - **Harbor Ledger patient**: Deliberately hostile, confusing spaghetti architecture with lying documentation, decoy code, uncalled scripts, and obfuscated intern backdoors.
-- **Synthetic roster fixtures**: Bob Average, Jane Normal, and Sally Representative Sample (`000-12-xxxx`, `555-01xx`, `.test`).
+- **Synthetic roster fixtures**: 24 invented customers; the lead canaries are Bob Kessler, Jane Okafor, and Sally Lindqvist. SSNs use never-issued area numbers (`900-`/`666-`), phones sit in the fictional `555-01xx` block, emails on reserved `example.*` domains.
 - **Alive functional specification**: Assertions verifying the ledger remains operational (authentication, invoice inspection, note retrieval, file export, CSS styling, and health checks).
 - **Sealed judge rounds (Red Rabbits)**: Bespoke exfiltration probes targeting the intern's specific logical backdoors.
 - **DADA Vol 1 armory measures**: Preventative hardening checks derived from [DADA Vol 1](https://dadavol1.vercel.app):

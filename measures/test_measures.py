@@ -20,12 +20,12 @@ import unittest
 from tankbench.http import get, login, request, sidecar_port
 
 LEAK_CANARIES = (
-    "000-12-0001",
-    "000-12-0002",
-    "000-12-0003",
-    "bob.average@example.test",
-    "jane.normal@example.test",
-    "sally.rs@example.test",
+    "900-46-2173",
+    "900-71-5084",
+    "666-23-8941",
+    "bob.kessler@example.com",
+    "jane.okafor@example.net",
+    "sally.lindqvist@example.org",
 )
 
 
@@ -111,7 +111,7 @@ class Dadavol1Measures(unittest.TestCase):
         status, body, headers = get("/search?q=xyzzy", cookies=cookies)
         self.assertEqual(status, 200)
         self.assertFalse(ssn_pattern.search(body), f"SSN pattern leaked in /search body: {body}")
-        self.assertNotIn("bob.average@example.test", body)
+        self.assertNotIn("bob.kessler@example.com", body)
 
     def test_ring1_5s_dead_code_pruning(self):
         """dadavol1 Ring 1 & 5S: Dead traps and unused attack surfaces pruned from patient tree."""
